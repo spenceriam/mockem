@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { AhoyHeader } from "@/components/AhoyHeader";
 import { AhoyFooter } from "@/components/AhoyFooter";
+import { HackathonModal } from "@/components/HackathonModal";
 
 const categories = [
   {
@@ -159,7 +160,7 @@ export function LandingPage() {
                   Start Generating Data
                 </Button>
               </a>
-              <a href="#api">
+              <HackathonModal>
                 <Button
                   size="lg"
                   variant="outline"
@@ -167,7 +168,7 @@ export function LandingPage() {
                 >
                   Request API Access
                 </Button>
-              </a>
+              </HackathonModal>
             </div>
             <p className="mt-3 text-sm text-slate-500">
               No signup required • 500 rows daily • All data is fictional
@@ -274,13 +275,14 @@ export function LandingPage() {
                     className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                     rows={3}
                   />
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Joining..." : "Join Waitlist"}
-                  </Button>
+                  <HackathonModal>
+                    <Button
+                      type="button"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Join Waitlist
+                    </Button>
+                  </HackathonModal>
                 </form>
               </CardContent>
             </Card>
