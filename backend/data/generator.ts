@@ -49,7 +49,7 @@ export const generateData = api<GenerateDataRequestWithSession, GenerateDataResp
   }
 );
 
-async function generateSchemaData(schema: string, rowCount: number): Promise<any[]> {
+export async function generateSchemaData(schema: string, rowCount: number): Promise<any[]> {
   switch (schema) {
     case 'companies':
       return await generateCompanies(rowCount);

@@ -1,5 +1,5 @@
 import { api, APIError, Cookie } from "encore.dev/api";
-import { ExportDataRequest } from "./types";
+import { ExportDataRequest, SessionLimits } from "./types";
 import { validateSessionLimits, updateSessionLimits } from "./session";
 import { generateSchemaData } from "./generator";
 
@@ -10,6 +10,7 @@ interface ExportDataRequestWithSession extends ExportDataRequest {
 interface ExportDataResponse {
   csvData: string;
   filename: string;
+  sessionLimits: SessionLimits;
 }
 
 // Export data as CSV
@@ -34,7 +35,7 @@ export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
       throw APIError.resourceExhausted(validation.error!);
     }
 
-    // Generate data (we'll use the same generator but won't count rows again)
+    // Generate data
     const data = await generateSchemaData(schema, rowCount);
 
     // Convert to CSV
@@ -42,11 +43,12 @@ export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
     const filename = `mockem_${category}_${platform}_${schema}_${new Date().toISOString().split('T')[0]}.csv`;
 
     // Update session limits
-    await updateSessionLimits(sessionId, 0, 1, 0);
+    const newLimits = await updateSessionLimits(sessionId, 0, 1, 0);
 
     return {
       csvData,
-      filename
+      filename,
+      sessionLimits: newLimits,
     };
   }
 );
@@ -88,15 +90,4 @@ function convertToCSV(data: any[], schema: string): string {
   });
   
   return header + [csvHeader, ...csvRows].join('\n');
-}
-
-// Import the generateSchemaData function
-async function generateSchemaData(schema: string, rowCount: number): Promise<any[]> {
-  // This is a simplified version - in a real implementation,
-  // you'd import this from the generator module
-  const { generateData } = await import('./generator');
-  
-  // We need to call the internal generation logic
-  // For now, we'll return a placeholder
-  return [];
 }

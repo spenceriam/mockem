@@ -3,18 +3,43 @@ import { mockemDB } from "./db";
 import { SessionInfo, SessionLimits, DAILY_LIMITS } from "./types";
 import { randomBytes } from "crypto";
 
+interface GetOrCreateSessionRequest {
+  session?: Cookie<"session">;
+}
+
 interface SessionResponse {
   sessionInfo: SessionInfo;
-  sessionCookie: Cookie<"session">;
+  sessionCookie?: Cookie<"session">;
 }
 
 // Get or create a session
-export const getSession = api<void, SessionResponse>(
+export const getSession = api<GetOrCreateSessionRequest, SessionResponse>(
   { expose: true, method: "GET", path: "/session" },
-  async () => {
-    const sessionId = randomBytes(32).toString('hex');
+  async (req) => {
+    if (req.session?.value) {
+      const existingSession = await mockemDB.queryRow`
+        SELECT * FROM sessions 
+        WHERE id = ${req.session.value}
+        AND created_at > NOW() - INTERVAL '1 day'
+      `;
+
+      if (existingSession) {
+        return {
+          sessionInfo: {
+            sessionId: existingSession.id,
+            limits: {
+              rowsGenerated: existingSession.rows_generated,
+              exportsUsed: existingSession.exports_used,
+              schemasUsed: existingSession.schemas_used,
+            },
+          },
+        };
+      }
+    }
+
+    // Create a new session
+    const sessionId = randomBytes(32).toString("hex");
     
-    // Create new session in database
     await mockemDB.exec`
       INSERT INTO sessions (id, rows_generated, exports_used, schemas_used)
       VALUES (${sessionId}, 0, 0, 0)
@@ -25,8 +50,8 @@ export const getSession = api<void, SessionResponse>(
       limits: {
         rowsGenerated: 0,
         exportsUsed: 0,
-        schemasUsed: 0
-      }
+        schemasUsed: 0,
+      },
     };
 
     return {
@@ -36,55 +61,8 @@ export const getSession = api<void, SessionResponse>(
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         httpOnly: true,
         secure: true,
-        sameSite: "Lax"
-      }
-    };
-  }
-);
-
-interface GetSessionInfoRequest {
-  session?: Cookie<"session">;
-}
-
-// Get current session info
-export const getSessionInfo = api<GetSessionInfoRequest, SessionInfo>(
-  { expose: true, method: "GET", path: "/session/info" },
-  async (req) => {
-    if (!req.session?.value) {
-      return {
-        sessionId: '',
-        limits: {
-          rowsGenerated: 0,
-          exportsUsed: 0,
-          schemasUsed: 0
-        }
-      };
-    }
-
-    const session = await mockemDB.queryRow`
-      SELECT * FROM sessions 
-      WHERE id = ${req.session.value}
-      AND created_at > NOW() - INTERVAL '1 day'
-    `;
-
-    if (!session) {
-      return {
-        sessionId: '',
-        limits: {
-          rowsGenerated: 0,
-          exportsUsed: 0,
-          schemasUsed: 0
-        }
-      };
-    }
-
-    return {
-      sessionId: session.id,
-      limits: {
-        rowsGenerated: session.rows_generated,
-        exportsUsed: session.exports_used,
-        schemasUsed: session.schemas_used
-      }
+        sameSite: "Lax",
+      },
     };
   }
 );

@@ -53,9 +53,8 @@ export function SchemaPage() {
 
   const initializeSession = async () => {
     try {
-      await backend.data.getSession();
-      const sessionInfo = await backend.data.getSessionInfo();
-      setSessionLimits(sessionInfo.limits);
+      const response = await backend.data.getSession({});
+      setSessionLimits(response.sessionInfo.limits);
     } catch (error) {
       console.error("Session initialization error:", error);
     }
@@ -115,8 +114,7 @@ export function SchemaPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      const sessionInfo = await backend.data.getSessionInfo();
-      setSessionLimits(sessionInfo.limits);
+      setSessionLimits(response.sessionLimits);
 
       toast({
         title: "Export Complete!",
