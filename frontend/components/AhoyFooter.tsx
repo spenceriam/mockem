@@ -1,4 +1,6 @@
 import { Sailboat, Coffee, X } from "lucide-react";
+import { PrivacyModal } from "./PrivacyModal";
+import { TermsModal } from "./TermsModal";
 
 export function AhoyFooter() {
   return (
@@ -54,23 +56,17 @@ export function AhoyFooter() {
                 </a>
               </p>
               <div className="hidden sm:block">•</div>
-              <a 
-                href="https://www.lionmystic.com/privacy" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Privacy Policy
-              </a>
+              <PrivacyModal>
+                <button className="text-slate-500 hover:text-slate-700 transition-colors">
+                  Privacy Policy
+                </button>
+              </PrivacyModal>
               <div className="hidden sm:block">•</div>
-              <a 
-                href="https://www.lionmystic.com/terms" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Terms of Service
-              </a>
+              <TermsModal>
+                <button className="text-slate-500 hover:text-slate-700 transition-colors">
+                  Terms of Service
+                </button>
+              </TermsModal>
             </div>
           </div>
         </div>
