@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Sailboat } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AhoyHeaderProps {
@@ -16,7 +16,9 @@ export function AhoyHeader({ backTo, backLabel = "Back", nav }: AhoyHeaderProps)
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2">
               <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
-                <Sailboat className="h-5 w-5" />
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M160,80a32,32,0,1,0-32-32A32,32,0,0,0,160,80Zm0-48a16,16,0,1,1-16,16A16,16,0,0,1,160,32ZM64,80a32,32,0,1,0-32-32A32,32,0,0,0,64,80ZM64,32A16,16,0,1,1,48,48,16,16,0,0,1,64,32ZM224,80a32,32,0,1,0-32-32A32,32,0,0,0,224,80Zm0-48a16,16,0,1,1-16,16A16,16,0,0,1,224,32ZM32,128a32,32,0,1,0,32,32A32,32,0,0,0,32,128Zm16,32a16,16,0,1,1,16-16A16,16,0,0,1,48,160Zm144-32a32,32,0,1,0,32,32A32,32,0,0,0,192,128Zm16,32a16,16,0,1,1,16-16A16,16,0,0,1,208,160ZM96,208a32,32,0,1,0,32,32A32,32,0,0,0,96,208Zm16,32a16,16,0,1,1,16-16A16,16,0,0,1,112,240ZM136,112V96a8,8,0,0,0-16,0v16H104a8,8,0,0,0,0,16h16v16a8,8,0,0,0,16,0V128h16a8,8,0,0,0,0-16Zm40-48h8v24a8,8,0,0,0,16,0V64h8a8,8,0,0,0,0-16h-8V40a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16ZM56,184h8v8a8,8,0,0,0,16,0v-8h8a8,8,0,0,0,0-16H80v-8a8,8,0,0,0-16,0v8H56a8,8,0,0,0,0,16Z"></path>
+                </svg>
               </div>
               <span className="text-lg font-semibold tracking-tight">MockEm</span>
             </Link>
