@@ -21,6 +21,7 @@ import backend from "~backend/client";
 import { AhoyHeader } from "@/components/AhoyHeader";
 import { AhoyFooter } from "@/components/AhoyFooter";
 import { HackathonModal } from "@/components/HackathonModal";
+import { TypingAnimation } from "@/components/TypingAnimation";
 
 const categories = [
   {
@@ -28,35 +29,35 @@ const categories = [
     title: "Sales & CRM",
     description: "Customer relationships, opportunities, and sales pipeline data",
     icon: Users,
-    color: "text-blue-600",
+    color: "text-slate-400",
   },
   {
     id: "finance-erp",
     title: "Finance & ERP",
     description: "Accounting records, transactions, and financial reporting data",
     icon: DollarSign,
-    color: "text-emerald-600",
+    color: "text-slate-400",
   },
   {
     id: "human-resources",
     title: "Human Resources",
     description: "Employee records, department structures, and organizational data",
     icon: Building2,
-    color: "text-purple-600",
+    color: "text-slate-400",
   },
   {
     id: "marketing-campaigns",
     title: "Marketing & Campaigns",
     description: "Campaign performance, leads, and marketing analytics data",
     icon: Megaphone,
-    color: "text-orange-600",
+    color: "text-slate-400",
   },
   {
     id: "supply-chain",
     title: "Supply Chain & Inventory",
     description: "Products, orders, suppliers, and inventory management data",
     icon: Package,
-    color: "text-teal-600",
+    color: "text-slate-400",
   },
 ];
 
@@ -141,22 +142,33 @@ export function LandingPage() {
       />
 
       {/* Hero Section */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-20">
+      <section className="relative bg-background overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2134&q=80')"
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90" />
+        
+        <div className="relative mx-auto max-w-6xl px-4 py-20">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
               Enterprise Mock Data
-              <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                That Mirrors Reality
+              <span className="block bg-gradient-to-r from-slate-300 to-slate-500 bg-clip-text text-transparent">
+                <TypingAnimation text="That Mirrors Reality" />
               </span>
             </h1>
-            <p className="mt-6 text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="mt-6 text-xl text-muted-foreground max-w-3xl mx-auto">
               Generate realistic test data for business applications with production-ready schemas for Sales, Finance,
               HR, Marketing, and Supply Chain systems.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <a href="#categories">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                <Button size="lg" className="bg-slate-700 hover:bg-slate-600 text-slate-100 shadow-sm">
                   Start Generating Data
                 </Button>
               </a>
@@ -164,13 +176,13 @@ export function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-slate-300 text-slate-800 hover:bg-slate-50 shadow-sm"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 shadow-sm"
                 >
                   Request API Access
                 </Button>
               </HackathonModal>
             </div>
-            <p className="mt-3 text-sm text-slate-500">
+            <p className="mt-3 text-sm text-muted-foreground">
               No signup required • 500 rows daily • All data is fictional
             </p>
           </div>
@@ -178,25 +190,25 @@ export function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="bg-slate-50">
+      <section id="features" className="bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Built for Enterprise Development
             </h2>
-            <p className="mt-3 text-lg text-slate-600">
+            <p className="mt-3 text-lg text-muted-foreground">
               Professional-grade mock data generation with realistic business patterns and relationships.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-white border-slate-200 shadow-sm">
+              <Card key={index} className="bg-card border-border shadow-sm">
                 <CardHeader>
-                  <feature.icon className="h-10 w-10 text-blue-600 mb-3" />
-                  <CardTitle className="text-slate-900">{feature.title}</CardTitle>
+                  <feature.icon className="h-10 w-10 text-slate-400 mb-3" />
+                  <CardTitle className="text-foreground">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-slate-600">{feature.description}</CardDescription>
+                  <CardDescription className="text-muted-foreground">{feature.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -205,11 +217,11 @@ export function LandingPage() {
       </section>
 
       {/* Categories Section */}
-      <section id="categories" className="bg-white">
+      <section id="categories" className="bg-background">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Business Data Categories</h2>
-            <p className="mt-3 text-lg text-slate-600">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Business Data Categories</h2>
+            <p className="mt-3 text-lg text-muted-foreground">
               Choose from five comprehensive business domains, each with platform-specific schemas.
             </p>
           </div>
@@ -217,7 +229,7 @@ export function LandingPage() {
             {categories.map((category) => (
               <Card
                 key={category.id}
-                className="group bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                className="group bg-card border-border shadow-sm hover:shadow-md transition-shadow"
               >
                 <Link to={`/category/${category.id}`} className="block">
                   <CardHeader>
@@ -225,14 +237,14 @@ export function LandingPage() {
                       <category.icon
                         className={`h-12 w-12 ${category.color} transition-transform group-hover:scale-105`}
                       />
-                      <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-slate-300 transition-colors" />
                     </div>
-                    <CardTitle className="text-slate-900 group-hover:text-blue-700 transition-colors">
+                    <CardTitle className="text-foreground group-hover:text-slate-300 transition-colors">
                       {category.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-slate-600">{category.description}</CardDescription>
+                    <CardDescription className="text-muted-foreground">{category.description}</CardDescription>
                   </CardContent>
                 </Link>
               </Card>
@@ -242,15 +254,15 @@ export function LandingPage() {
       </section>
 
       {/* API Waitlist Section */}
-      <section id="api" className="bg-slate-50">
+      <section id="api" className="bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">API Access Coming Soon</h2>
-            <p className="mt-3 text-lg text-slate-600">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">API Access Coming Soon</h2>
+            <p className="mt-3 text-lg text-muted-foreground">
               Programmatic access to MockEm&apos;s data generation capabilities. Join the waitlist to be notified when
               our API becomes available.
             </p>
-            <Card className="mt-8 bg-white border-slate-200 shadow-sm">
+            <Card className="mt-8 bg-card border-border shadow-sm">
               <CardContent className="p-6">
                 <form onSubmit={handleWaitlistSubmit} className="space-y-4 text-left">
                   <Input
@@ -259,26 +271,26 @@ export function LandingPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
+                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   />
                   <Input
                     type="text"
                     placeholder="Company (optional)"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
+                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   />
                   <Textarea
                     placeholder="Use case (optional)"
                     value={useCase}
                     onChange={(e) => setUseCase(e.target.value)}
-                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
+                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                     rows={3}
                   />
                   <HackathonModal>
                     <Button
                       type="button"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full bg-slate-700 hover:bg-slate-600 text-slate-100"
                     >
                       Join Waitlist
                     </Button>

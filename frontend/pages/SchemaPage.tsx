@@ -173,7 +173,7 @@ export function SchemaPage() {
   const canExport = remainingExports > 0 && hasGenerated;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <AhoyHeader
         backTo={`/category/${category}`}
         backLabel="Back to Category"
@@ -182,17 +182,17 @@ export function SchemaPage() {
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Schema Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <span>{category}</span>
             <span>/</span>
             <span>{platform}</span>
             <span>/</span>
-            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Badge variant="secondary" className="bg-slate-700 text-slate-300 border-slate-600">
               {schema}
             </Badge>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 capitalize">{schema} Schema</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground capitalize">{schema} Schema</h1>
+          <p className="mt-2 text-muted-foreground">
             Generate realistic {schema} data for {platform} platform testing and development.
           </p>
         </div>
@@ -200,19 +200,19 @@ export function SchemaPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Generation Controls */}
           <div className="lg:col-span-1">
-            <Card className="bg-white border-slate-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="text-slate-900 flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                <CardTitle className="text-foreground flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-slate-400" />
                   Generate Data
                 </CardTitle>
-                <CardDescription className="text-slate-600">
+                <CardDescription className="text-muted-foreground">
                   Configure and generate mock data for testing.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <Label htmlFor="rowCount" className="text-slate-900">
+                  <Label htmlFor="rowCount" className="text-foreground">
                     Number of Rows
                   </Label>
                   <Input
@@ -222,16 +222,16 @@ export function SchemaPage() {
                     max="100"
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
-                    className="mt-2 bg-white border-slate-300 text-slate-900"
+                    className="mt-2 bg-background border-border text-foreground"
                   />
-                  <p className="text-xs text-slate-500 mt-1">Maximum 100 rows per generation</p>
+                  <p className="text-xs text-muted-foreground mt-1">Maximum 100 rows per generation</p>
                 </div>
 
                 <div className="space-y-3">
                   <Button
                     onClick={handleGenerate}
                     disabled={!canGenerate || isGenerating}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-slate-100"
                   >
                     {isGenerating ? (
                       <>
@@ -251,7 +251,7 @@ export function SchemaPage() {
                       onClick={handleExport}
                       disabled={!canExport || isExporting}
                       variant="outline"
-                      className="w-full border-slate-300 text-slate-800 hover:bg-slate-50"
+                      className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
                     >
                       {isExporting ? (
                         <>
@@ -269,27 +269,27 @@ export function SchemaPage() {
                 </div>
 
                 {/* Session Limits */}
-                <div className="pt-4 border-t border-slate-200">
-                  <h4 className="text-slate-900 font-semibold mb-3">Daily Limits</h4>
+                <div className="pt-4 border-t border-border">
+                  <h4 className="text-foreground font-semibold mb-3">Daily Limits</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Rows Generated:</span>
-                      <span className="text-slate-900">{sessionLimits.rowsGenerated}/500</span>
+                      <span className="text-muted-foreground">Rows Generated:</span>
+                      <span className="text-foreground">{sessionLimits.rowsGenerated}/500</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Exports Used:</span>
-                      <span className="text-slate-900">{sessionLimits.exportsUsed}/1</span>
+                      <span className="text-muted-foreground">Exports Used:</span>
+                      <span className="text-foreground">{sessionLimits.exportsUsed}/1</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Schemas Used:</span>
-                      <span className="text-slate-900">{sessionLimits.schemasUsed}/1</span>
+                      <span className="text-muted-foreground">Schemas Used:</span>
+                      <span className="text-foreground">{sessionLimits.schemasUsed}/1</span>
                     </div>
                   </div>
                 </div>
 
                 {!canGenerate && (
-                  <Alert className="border-amber-200 bg-amber-50">
-                    <AlertDescription className="text-amber-800">
+                  <Alert className="border-amber-600 bg-amber-950/20">
+                    <AlertDescription className="text-amber-400">
                       Daily row limit exceeded. You have {remainingRows} rows remaining.
                     </AlertDescription>
                   </Alert>
@@ -300,10 +300,10 @@ export function SchemaPage() {
 
           {/* Data Preview */}
           <div className="lg:col-span-2">
-            <Card className="bg-white border-slate-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="text-slate-900">Data Preview</CardTitle>
-                <CardDescription className="text-slate-600">
+                <CardTitle className="text-foreground">Data Preview</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   {hasGenerated
                     ? `Showing first 10 rows of ${data.length} generated records`
                     : "Generate data to see preview"}
@@ -314,9 +314,9 @@ export function SchemaPage() {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-slate-200">
+                        <TableRow className="border-border">
                           {Object.keys(data[0]).map((key) => (
-                            <TableHead key={key} className="text-slate-700 font-semibold">
+                            <TableHead key={key} className="text-muted-foreground font-semibold">
                               {key}
                             </TableHead>
                           ))}
@@ -324,11 +324,11 @@ export function SchemaPage() {
                       </TableHeader>
                       <TableBody>
                         {data.map((row, index) => (
-                          <TableRow key={index} className="border-slate-200 hover:bg-slate-50">
+                          <TableRow key={index} className="border-border hover:bg-muted/50">
                             {Object.entries(row).map(([key, value]) => (
                               <TableCell
                                 key={key}
-                                className="text-slate-800 cursor-pointer hover:bg-slate-100 relative"
+                                className="text-foreground cursor-pointer hover:bg-muted/80 relative"
                                 onClick={() => handleCopyCell(value)}
                               >
                                 <div className="flex items-center justify-between">
@@ -336,9 +336,9 @@ export function SchemaPage() {
                                     {formatValue(value)}
                                   </span>
                                   {copiedCell === value?.toString() ? (
-                                    <Check className="h-3.5 w-3.5 text-emerald-600 ml-2" />
+                                    <Check className="h-3.5 w-3.5 text-green-400 ml-2" />
                                   ) : (
-                                    <Copy className="h-3.5 w-3.5 text-slate-400 ml-2 opacity-0 hover:opacity-100" />
+                                    <Copy className="h-3.5 w-3.5 text-muted-foreground ml-2 opacity-0 hover:opacity-100" />
                                   )}
                                 </div>
                               </TableCell>
@@ -350,9 +350,9 @@ export function SchemaPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Database className="h-14 w-14 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-600 text-lg">No data generated yet</p>
-                    <p className="text-slate-500 text-sm">
+                    <Database className="h-14 w-14 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground text-lg">No data generated yet</p>
+                    <p className="text-muted-foreground text-sm">
                       Click &quot;Generate Data&quot; to create mock {schema} records
                     </p>
                   </div>
@@ -363,9 +363,9 @@ export function SchemaPage() {
         </div>
 
         {/* Disclaimer */}
-        <Alert className="mt-8 border-slate-200 bg-white shadow-sm">
-          <AlertDescription className="text-slate-600">
-            <strong className="font-semibold text-slate-900">Disclaimer:</strong> All generated data is purely fictional
+        <Alert className="mt-8 border-border bg-card shadow-sm">
+          <AlertDescription className="text-muted-foreground">
+            <strong className="font-semibold text-foreground">Disclaimer:</strong> All generated data is purely fictional
             and created for testing purposes only. MockEm does not use or store any real personal or business
             information.
           </AlertDescription>
