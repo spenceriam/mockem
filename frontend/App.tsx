@@ -6,7 +6,7 @@ import { SchemaPage } from "./pages/SchemaPage";
 
 export default function App() {
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gray-50 text-slate-900">
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />

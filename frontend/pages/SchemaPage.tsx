@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { 
-  ArrowLeft,
+import {
   Database,
   Download,
   RefreshCw,
   BarChart3,
   Copy,
-  Check
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
+import { AhoyHeader } from "@/components/AhoyHeader";
+import { AhoyFooter } from "@/components/AhoyFooter";
 
 interface SessionLimits {
   rowsGenerated: number;
@@ -26,12 +27,12 @@ interface SessionLimits {
 }
 
 export function SchemaPage() {
-  const { category, platform, schema } = useParams<{ 
-    category: string; 
-    platform: string; 
-    schema: string; 
+  const { category, platform, schema } = useParams<{
+    category: string;
+    platform: string;
+    schema: string;
   }>();
-  
+
   const [rowCount, setRowCount] = useState(10);
   const [data, setData] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -40,18 +41,19 @@ export function SchemaPage() {
   const [sessionLimits, setSessionLimits] = useState<SessionLimits>({
     rowsGenerated: 0,
     exportsUsed: 0,
-    schemasUsed: 0
+    schemasUsed: 0,
   });
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     initializeSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeSession = async () => {
     try {
-      const session = await backend.data.getSession();
+      await backend.data.getSession();
       const sessionInfo = await backend.data.getSessionInfo();
       setSessionLimits(sessionInfo.limits);
     } catch (error) {
@@ -61,30 +63,30 @@ export function SchemaPage() {
 
   const handleGenerate = async () => {
     if (!category || !platform || !schema) return;
-    
+
     setIsGenerating(true);
     try {
       const response = await backend.data.generateData({
         category,
         platform,
         schema,
-        rowCount
+        rowCount,
       });
-      
+
       setData(response.preview);
       setHasGenerated(true);
       setSessionLimits(response.sessionLimits);
-      
+
       toast({
         title: "Data Generated!",
-        description: `Generated ${response.totalRows} rows of ${schema} data.`
+        description: `Generated ${response.totalRows} rows of ${schema} data.`,
       });
     } catch (error: any) {
       console.error("Generation error:", error);
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate data. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -93,41 +95,39 @@ export function SchemaPage() {
 
   const handleExport = async () => {
     if (!category || !platform || !schema) return;
-    
+
     setIsExporting(true);
     try {
       const response = await backend.data.exportData({
         category,
         platform,
         schema,
-        rowCount
+        rowCount,
       });
-      
-      // Create download link
-      const blob = new Blob([response.csvData], { type: 'text/csv' });
+
+      const blob = new Blob([response.csvData], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = response.filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      // Update session limits
+
       const sessionInfo = await backend.data.getSessionInfo();
       setSessionLimits(sessionInfo.limits);
-      
+
       toast({
         title: "Export Complete!",
-        description: `Downloaded ${response.filename}`
+        description: `Downloaded ${response.filename}`,
       });
     } catch (error: any) {
       console.error("Export error:", error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export data. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsExporting(false);
@@ -135,34 +135,33 @@ export function SchemaPage() {
   };
 
   const handleCopyCell = async (value: any) => {
-    const stringValue = value?.toString() || '';
+    const stringValue = value?.toString() || "";
     try {
       await navigator.clipboard.writeText(stringValue);
       setCopiedCell(stringValue);
       setTimeout(() => setCopiedCell(null), 2000);
       toast({
         title: "Copied!",
-        description: "Cell value copied to clipboard"
+        description: "Cell value copied to clipboard",
       });
     } catch (error) {
       toast({
         title: "Copy Failed",
         description: "Failed to copy to clipboard",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'number') {
-      // Format currency values (assuming values > 1000 are currency in cents)
+    if (value === null || value === undefined) return "";
+    if (typeof value === "number") {
       if (value > 100000) {
         return `$${(value / 100).toLocaleString()}`;
       }
       return value.toLocaleString();
     }
-    if (value instanceof Date || (typeof value === 'string' && value.includes('T'))) {
+    if (value instanceof Date || (typeof value === "string" && value.includes("T"))) {
       return new Date(value).toLocaleDateString();
     }
     return value.toString();
@@ -174,41 +173,26 @@ export function SchemaPage() {
   const canExport = remainingExports > 0 && hasGenerated;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Database className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold text-white">MockEm</span>
-            </div>
-            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800" asChild>
-              <Link to={`/category/${category}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Category
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50">
+      <AhoyHeader
+        backTo={`/category/${category}`}
+        backLabel="Back to Category"
+      />
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Schema Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-2 text-sm text-slate-400 mb-4">
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
             <span>{category}</span>
             <span>/</span>
             <span>{platform}</span>
             <span>/</span>
-            <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border-blue-500/30">
+            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
               {schema}
             </Badge>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4 capitalize">
-            {schema} Schema
-          </h1>
-          <p className="text-lg text-slate-300">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 capitalize">{schema} Schema</h1>
+          <p className="mt-2 text-slate-600">
             Generate realistic {schema} data for {platform} platform testing and development.
           </p>
         </div>
@@ -216,19 +200,21 @@ export function SchemaPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Generation Controls */}
           <div className="lg:col-span-1">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-slate-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
+                <CardTitle className="text-slate-900 flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
                   Generate Data
                 </CardTitle>
-                <CardDescription className="text-slate-300">
+                <CardDescription className="text-slate-600">
                   Configure and generate mock data for testing.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <Label htmlFor="rowCount" className="text-white">Number of Rows</Label>
+                  <Label htmlFor="rowCount" className="text-slate-900">
+                    Number of Rows
+                  </Label>
                   <Input
                     id="rowCount"
                     type="number"
@@ -236,11 +222,9 @@ export function SchemaPage() {
                     max="100"
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
-                    className="bg-slate-700 border-slate-600 text-white mt-2"
+                    className="mt-2 bg-white border-slate-300 text-slate-900"
                   />
-                  <p className="text-xs text-slate-400 mt-1">
-                    Maximum 100 rows per generation
-                  </p>
+                  <p className="text-xs text-slate-500 mt-1">Maximum 100 rows per generation</p>
                 </div>
 
                 <div className="space-y-3">
@@ -267,7 +251,7 @@ export function SchemaPage() {
                       onClick={handleExport}
                       disabled={!canExport || isExporting}
                       variant="outline"
-                      className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                      className="w-full border-slate-300 text-slate-800 hover:bg-slate-50"
                     >
                       {isExporting ? (
                         <>
@@ -285,27 +269,27 @@ export function SchemaPage() {
                 </div>
 
                 {/* Session Limits */}
-                <div className="pt-4 border-t border-slate-700">
-                  <h4 className="text-white font-semibold mb-3">Daily Limits</h4>
+                <div className="pt-4 border-t border-slate-200">
+                  <h4 className="text-slate-900 font-semibold mb-3">Daily Limits</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Rows Generated:</span>
-                      <span className="text-white">{sessionLimits.rowsGenerated}/500</span>
+                      <span className="text-slate-600">Rows Generated:</span>
+                      <span className="text-slate-900">{sessionLimits.rowsGenerated}/500</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Exports Used:</span>
-                      <span className="text-white">{sessionLimits.exportsUsed}/1</span>
+                      <span className="text-slate-600">Exports Used:</span>
+                      <span className="text-slate-900">{sessionLimits.exportsUsed}/1</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Schemas Used:</span>
-                      <span className="text-white">{sessionLimits.schemasUsed}/1</span>
+                      <span className="text-slate-600">Schemas Used:</span>
+                      <span className="text-slate-900">{sessionLimits.schemasUsed}/1</span>
                     </div>
                   </div>
                 </div>
 
                 {!canGenerate && (
-                  <Alert className="border-orange-500/50 bg-orange-500/10">
-                    <AlertDescription className="text-orange-200">
+                  <Alert className="border-amber-200 bg-amber-50">
+                    <AlertDescription className="text-amber-800">
                       Daily row limit exceeded. You have {remainingRows} rows remaining.
                     </AlertDescription>
                   </Alert>
@@ -316,14 +300,13 @@ export function SchemaPage() {
 
           {/* Data Preview */}
           <div className="lg:col-span-2">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-slate-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white">Data Preview</CardTitle>
-                <CardDescription className="text-slate-300">
-                  {hasGenerated 
+                <CardTitle className="text-slate-900">Data Preview</CardTitle>
+                <CardDescription className="text-slate-600">
+                  {hasGenerated
                     ? `Showing first 10 rows of ${data.length} generated records`
-                    : "Generate data to see preview"
-                  }
+                    : "Generate data to see preview"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -331,9 +314,9 @@ export function SchemaPage() {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-slate-600">
+                        <TableRow className="border-slate-200">
                           {Object.keys(data[0]).map((key) => (
-                            <TableHead key={key} className="text-slate-300 font-semibold">
+                            <TableHead key={key} className="text-slate-700 font-semibold">
                               {key}
                             </TableHead>
                           ))}
@@ -341,21 +324,21 @@ export function SchemaPage() {
                       </TableHeader>
                       <TableBody>
                         {data.map((row, index) => (
-                          <TableRow key={index} className="border-slate-700 hover:bg-slate-700/50">
+                          <TableRow key={index} className="border-slate-200 hover:bg-slate-50">
                             {Object.entries(row).map(([key, value]) => (
-                              <TableCell 
-                                key={key} 
-                                className="text-slate-300 cursor-pointer hover:bg-slate-600/50 relative"
+                              <TableCell
+                                key={key}
+                                className="text-slate-800 cursor-pointer hover:bg-slate-100 relative"
                                 onClick={() => handleCopyCell(value)}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="truncate max-w-[200px]">
+                                  <span className="truncate max-w-[220px]">
                                     {formatValue(value)}
                                   </span>
                                   {copiedCell === value?.toString() ? (
-                                    <Check className="h-3 w-3 text-green-400 ml-2" />
+                                    <Check className="h-3.5 w-3.5 text-emerald-600 ml-2" />
                                   ) : (
-                                    <Copy className="h-3 w-3 text-slate-500 ml-2 opacity-0 group-hover:opacity-100" />
+                                    <Copy className="h-3.5 w-3.5 text-slate-400 ml-2 opacity-0 hover:opacity-100" />
                                   )}
                                 </div>
                               </TableCell>
@@ -367,10 +350,10 @@ export function SchemaPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Database className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400 text-lg">No data generated yet</p>
+                    <Database className="h-14 w-14 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-600 text-lg">No data generated yet</p>
                     <p className="text-slate-500 text-sm">
-                      Click "Generate Data" to create mock {schema} records
+                      Click &quot;Generate Data&quot; to create mock {schema} records
                     </p>
                   </div>
                 )}
@@ -380,13 +363,16 @@ export function SchemaPage() {
         </div>
 
         {/* Disclaimer */}
-        <Alert className="mt-8 border-slate-600 bg-slate-800/30">
-          <AlertDescription className="text-slate-400">
-            <strong>Disclaimer:</strong> All generated data is purely fictional and created for testing purposes only. 
-            MockEm does not use or store any real personal or business information.
+        <Alert className="mt-8 border-slate-200 bg-white shadow-sm">
+          <AlertDescription className="text-slate-600">
+            <strong className="font-semibold text-slate-900">Disclaimer:</strong> All generated data is purely fictional
+            and created for testing purposes only. MockEm does not use or store any real personal or business
+            information.
           </AlertDescription>
         </Alert>
       </div>
+
+      <AhoyFooter />
     </div>
   );
 }
