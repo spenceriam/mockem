@@ -192,7 +192,7 @@ export function SchemaPage() {
   };
 
   const remainingRows = sessionLimits ? 500 - sessionLimits.rowsGenerated : 0;
-  const remainingExports = sessionLimits ? 1 - sessionLimits.exportsUsed : 0;
+  const remainingExports = sessionLimits ? 5 - sessionLimits.exportsUsed : 0;
   const totalRows = schemas.length * rowCount;
   const canGenerate = sessionLimits ? remainingRows >= totalRows : false;
   const canExport = sessionLimits ? remainingExports > 0 && hasGenerated : false;
@@ -342,11 +342,11 @@ export function SchemaPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Exports Used:</span>
-                        <span className="text-foreground">{sessionLimits.exportsUsed}/1</span>
+                        <span className="text-foreground">{sessionLimits.exportsUsed}/5</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Schemas Used:</span>
-                        <span className="text-foreground">{sessionLimits.schemasUsed}/1</span>
+                        <span className="text-foreground">{sessionLimits.schemasUsed}/5</span>
                       </div>
                     </div>
                   </div>

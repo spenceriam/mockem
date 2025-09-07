@@ -124,14 +124,14 @@ export async function validateSessionLimits(
   if (needsExport && currentExports >= DAILY_LIMITS.MAX_EXPORTS) {
     return { 
       valid: false, 
-      error: "Daily export limit exceeded. You can export 1 schema per day." 
+      error: `Daily export limit exceeded. You can export ${DAILY_LIMITS.MAX_EXPORTS} schemas per day.` 
     };
   }
 
   if (needsNewSchema && currentSchemas >= DAILY_LIMITS.MAX_SCHEMAS) {
     return { 
       valid: false, 
-      error: "Daily schema limit exceeded. You can use 1 schema per day." 
+      error: `Daily schema limit exceeded. You can use ${DAILY_LIMITS.MAX_SCHEMAS} schemas per day.` 
     };
   }
 

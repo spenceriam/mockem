@@ -119,7 +119,7 @@ export function LandingPage() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Waitlist submission error:", error);
       toast({
         title: "Error",
@@ -183,7 +183,7 @@ export function LandingPage() {
               </HackathonModal>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              No signup required • 500 rows daily • All data is fictional
+              No signup required • 500 rows daily • 5 exports daily • All data is fictional
             </p>
           </div>
         </div>

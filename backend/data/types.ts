@@ -32,8 +32,8 @@ export interface SessionInfo {
 
 export const DAILY_LIMITS = {
   MAX_ROWS: 500,
-  MAX_EXPORTS: 1,
-  MAX_SCHEMAS: 1
+  MAX_EXPORTS: 5,
+  MAX_SCHEMAS: 5
 } as const;
 
 export const BUSINESS_CATEGORIES = [
