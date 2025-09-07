@@ -113,7 +113,7 @@ export function CategoryPage() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedSchemas, setSelectedSchemas] = useState<string[]>([]);
-  const schemaSelectionRef = useRef<HTMLDivElement>(null);
+  const platformSelectionRef = useRef<HTMLDivElement>(null);
 
   if (!category || !(category in categoryInfo)) {
     return <div>Category not found</div>;
@@ -125,10 +125,6 @@ export function CategoryPage() {
     if (selectedPlatform !== platformId) {
       setSelectedPlatform(platformId);
       setSelectedSchemas([]); // Clear schemas on new platform selection
-      // Scroll to schema selection
-      setTimeout(() => {
-        schemaSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
     }
   };
 
@@ -157,6 +153,10 @@ export function CategoryPage() {
     }
   };
 
+  const scrollToPlatforms = () => {
+    platformSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AhoyHeader backTo="/" backLabel="Back to Home" />
@@ -178,7 +178,7 @@ export function CategoryPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Platform & Schema Selection */}
           <div className="lg:col-span-2">
-            <div className="mb-8">
+            <div ref={platformSelectionRef} className="mb-8 scroll-mt-24">
               <h2 className="text-2xl font-bold text-foreground mb-4">1. Choose Your Platform</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 {platforms.map((platform) => (
@@ -213,9 +213,12 @@ export function CategoryPage() {
             </div>
 
             {/* Schema Selection */}
-            <div ref={schemaSelectionRef} className="relative scroll-mt-24">
+            <div className="relative">
               {!selectedPlatform && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg -m-4 p-4">
+                <div 
+                  className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg -m-4 p-4 cursor-pointer"
+                  onClick={scrollToPlatforms}
+                >
                   <p className="text-lg font-semibold text-foreground text-center p-4 bg-card/80 rounded-md border border-border">
                     Please select a platform first
                   </p>
