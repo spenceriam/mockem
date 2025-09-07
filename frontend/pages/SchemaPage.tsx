@@ -49,6 +49,7 @@ export function SchemaPage() {
   });
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(schemas[0] || '');
+  const [sessionInitialized, setSessionInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,13 +64,28 @@ export function SchemaPage() {
     try {
       const response = await backend.data.getSession({});
       setSessionLimits(response.sessionInfo.limits);
+      setSessionInitialized(true);
     } catch (error) {
       console.error("Session initialization error:", error);
+      toast({
+        title: "Session Error",
+        description: "Failed to initialize session. Please refresh the page.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleGenerate = async () => {
     if (!category || !platform || schemas.length === 0) return;
+    
+    if (!sessionInitialized) {
+      toast({
+        title: "Session Not Ready",
+        description: "Please wait for the session to initialize.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsGenerating(true);
     try {
@@ -90,11 +106,22 @@ export function SchemaPage() {
       });
     } catch (error: any) {
       console.error("Generation error:", error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate data. Please try again.",
-        variant: "destructive",
-      });
+      
+      // If it's a session error, try to reinitialize
+      if (error.message?.includes("Session required") || error.message?.includes("session")) {
+        console.log("Session error detected, reinitializing...");
+        await initializeSession();
+        toast({
+          title: "Session Refreshed",
+          description: "Please try generating data again.",
+        });
+      } else {
+        toast({
+          title: "Generation Failed",
+          description: error.message || "Failed to generate data. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -102,6 +129,15 @@ export function SchemaPage() {
 
   const handleExport = async () => {
     if (!category || !platform || schemas.length === 0) return;
+    
+    if (!sessionInitialized) {
+      toast({
+        title: "Session Not Ready",
+        description: "Please wait for the session to initialize.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsExporting(true);
     try {
@@ -145,11 +181,22 @@ export function SchemaPage() {
       });
     } catch (error: any) {
       console.error("Export error:", error);
-      toast({
-        title: "Export Failed",
-        description: error.message || "Failed to export data. Please try again.",
-        variant: "destructive",
-      });
+      
+      // If it's a session error, try to reinitialize
+      if (error.message?.includes("Session required") || error.message?.includes("session")) {
+        console.log("Session error detected, reinitializing...");
+        await initializeSession();
+        toast({
+          title: "Session Refreshed",
+          description: "Please try exporting again.",
+        });
+      } else {
+        toast({
+          title: "Export Failed",
+          description: error.message || "Failed to export data. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsExporting(false);
     }
@@ -191,8 +238,8 @@ export function SchemaPage() {
   const remainingRows = 500 - sessionLimits.rowsGenerated;
   const remainingExports = 1 - sessionLimits.exportsUsed;
   const totalRows = schemas.length * rowCount;
-  const canGenerate = remainingRows >= totalRows;
-  const canExport = remainingExports > 0 && hasGenerated;
+  const canGenerate = remainingRows >= totalRows && sessionInitialized;
+  const canExport = remainingExports > 0 && hasGenerated && sessionInitialized;
   const isMultipleSchemas = schemas.length > 1;
 
   return (
@@ -235,6 +282,14 @@ export function SchemaPage() {
           </p>
         </div>
 
+        {!sessionInitialized && (
+          <Alert className="mb-8 border-blue-600 bg-blue-950/20">
+            <AlertDescription className="text-blue-400">
+              Initializing session... Please wait.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Generation Controls */}
           <div className="lg:col-span-1">
@@ -261,6 +316,7 @@ export function SchemaPage() {
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
                     className="mt-2 bg-background border-border text-foreground"
+                    disabled={!sessionInitialized}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isMultipleSchemas 
@@ -338,7 +394,7 @@ export function SchemaPage() {
                   </div>
                 </div>
 
-                {!canGenerate && (
+                {sessionInitialized && !canGenerate && totalRows > remainingRows && (
                   <Alert className="border-amber-600 bg-amber-950/20">
                     <AlertDescription className="text-amber-400">
                       Daily row limit exceeded. You need {totalRows} rows but only have {remainingRows} remaining.
