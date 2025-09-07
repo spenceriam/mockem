@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Database,
@@ -113,6 +113,7 @@ export function CategoryPage() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedSchemas, setSelectedSchemas] = useState<string[]>([]);
+  const schemaSelectionRef = useRef<HTMLDivElement>(null);
 
   if (!category || !(category in categoryInfo)) {
     return <div>Category not found</div>;
@@ -120,7 +121,19 @@ export function CategoryPage() {
 
   const info = categoryInfo[category as keyof typeof categoryInfo];
 
+  const handlePlatformSelect = (platformId: string) => {
+    if (selectedPlatform !== platformId) {
+      setSelectedPlatform(platformId);
+      setSelectedSchemas([]); // Clear schemas on new platform selection
+      // Scroll to schema selection
+      setTimeout(() => {
+        schemaSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  };
+
   const handleSchemaToggle = (schemaId: string) => {
+    if (!selectedPlatform) return;
     setSelectedSchemas(prev => 
       prev.includes(schemaId) 
         ? prev.filter(id => id !== schemaId)
@@ -129,6 +142,7 @@ export function CategoryPage() {
   };
 
   const handleSelectAll = () => {
+    if (!selectedPlatform) return;
     if (selectedSchemas.length === info.schemas.length) {
       setSelectedSchemas([]);
     } else {
@@ -162,7 +176,7 @@ export function CategoryPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Platform Selection */}
+          {/* Platform & Schema Selection */}
           <div className="lg:col-span-2">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-4">1. Choose Your Platform</h2>
@@ -175,7 +189,7 @@ export function CategoryPage() {
                         ? 'ring-2 ring-slate-400 bg-slate-800/50'
                         : 'bg-card border-border hover:bg-slate-800/30'
                     }`}
-                    onClick={() => setSelectedPlatform(platform.id)}
+                    onClick={() => handlePlatformSelect(platform.id)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
@@ -199,56 +213,69 @@ export function CategoryPage() {
             </div>
 
             {/* Schema Selection */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-foreground">2. Select Data Schemas</h2>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                >
-                  {selectedSchemas.length === info.schemas.length ? 'Deselect All' : 'Select All'}
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {info.schemas.map((schema) => (
-                  <Card 
-                    key={schema.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedSchemas.includes(schema.id)
-                        ? 'ring-2 ring-slate-400 bg-slate-800/50'
-                        : 'bg-card border-border hover:bg-slate-800/30'
-                    }`}
-                    onClick={() => handleSchemaToggle(schema.id)}
+            <div ref={schemaSelectionRef} className="relative scroll-mt-24">
+              {!selectedPlatform && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg -m-4 p-4">
+                  <p className="text-lg font-semibold text-foreground text-center p-4 bg-card/80 rounded-md border border-border">
+                    Please select a platform first
+                  </p>
+                </div>
+              )}
+              <div className={`transition-opacity ${!selectedPlatform ? 'opacity-40' : 'opacity-100'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-foreground">2. Select Data Schemas</h2>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                    disabled={!selectedPlatform}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox 
-                          checked={selectedSchemas.includes(schema.id)}
-                          onChange={() => handleSchemaToggle(schema.id)}
-                          className="border-slate-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-foreground">{schema.name}</h3>
-                            <Badge variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
-                              {schema.id}
-                            </Badge>
+                    {selectedSchemas.length === info.schemas.length ? 'Deselect All' : 'Select All'}
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {info.schemas.map((schema) => (
+                    <Card 
+                      key={schema.id}
+                      className={`transition-all ${
+                        !selectedPlatform ? 'cursor-not-allowed' : 'cursor-pointer'
+                      } ${
+                        selectedSchemas.includes(schema.id)
+                          ? 'ring-2 ring-slate-400 bg-slate-800/50'
+                          : 'bg-card border-border hover:bg-slate-800/30'
+                      }`}
+                      onClick={() => handleSchemaToggle(schema.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox 
+                            checked={selectedSchemas.includes(schema.id)}
+                            disabled={!selectedPlatform}
+                            onCheckedChange={() => handleSchemaToggle(schema.id)}
+                            className="border-slate-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-foreground">{schema.name}</h3>
+                              <Badge variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
+                                {schema.id}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{schema.description}</p>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">{schema.description}</p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Action Panel */}
           <div className="lg:col-span-1">
-            <Card className="bg-card border-border shadow-sm sticky top-8">
+            <Card className="bg-card border-border shadow-sm sticky top-24">
               <CardHeader>
                 <CardTitle className="text-foreground">Selection Summary</CardTitle>
                 <CardDescription className="text-muted-foreground">
