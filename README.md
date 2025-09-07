@@ -4,7 +4,7 @@ Professional mock data generation for enterprise development teams. Generate rea
 
 ## Live Demo
 
-**[Try MockEm Live](https://your-demo-url-here.encore.run)**
+**[Try MockEm Live]([https://your-demo-url-here.encore.run](https://staging-mockem-data-generator-qxb2.frontend.encr.app))**
 
 1. Visit the live demo
 2. Choose a business category (Sales CRM, Finance ERP, HR, Marketing, or Supply Chain)
