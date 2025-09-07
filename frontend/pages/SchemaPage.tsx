@@ -199,10 +199,11 @@ export function SchemaPage() {
     return value.toString();
   };
 
-  // For unlimited mode, always allow generation and export
-  const canGenerate = true;
-  const canExport = hasGenerated;
+  const remainingRows = sessionLimits ? 500 - sessionLimits.rowsGenerated : 0;
+  const remainingExports = sessionLimits ? 5 - sessionLimits.exportsUsed : 0;
   const totalRows = schemas.length * rowCount;
+  const canGenerate = true; // Allow generation (limits are not enforced)
+  const canExport = hasGenerated;
   const isMultipleSchemas = schemas.length > 1;
 
   return (
@@ -245,12 +246,13 @@ export function SchemaPage() {
           </p>
         </div>
 
-        {/* Unlimited Access Notice */}
-        <Alert className="mb-8 border-blue-600 bg-blue-950/20">
-          <AlertDescription className="text-blue-400">
-            🚀 Unlimited access enabled for testing! Generate as much data as you need.
-          </AlertDescription>
-        </Alert>
+        {!sessionLimits && (
+          <Alert className="mb-8 border-blue-600 bg-blue-950/20">
+            <AlertDescription className="text-blue-400">
+              Loading usage limits...
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Generation Controls */}
@@ -278,6 +280,7 @@ export function SchemaPage() {
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
                     className="mt-2 bg-background border-border text-foreground"
+                    disabled={!sessionLimits}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isMultipleSchemas 
@@ -336,27 +339,24 @@ export function SchemaPage() {
                   </div>
                 )}
 
-                {/* Session Stats (for tracking purposes) */}
+                {/* Session Limits */}
                 {sessionLimits && (
                   <div className="pt-4 border-t border-border">
-                    <h4 className="text-foreground font-semibold mb-3">Session Stats</h4>
+                    <h4 className="text-foreground font-semibold mb-3">Daily Limits</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Rows Generated:</span>
-                        <span className="text-foreground">{sessionLimits.rowsGenerated}</span>
+                        <span className="text-foreground">{sessionLimits.rowsGenerated}/500</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Exports Used:</span>
-                        <span className="text-foreground">{sessionLimits.exportsUsed}</span>
+                        <span className="text-foreground">{sessionLimits.exportsUsed}/5</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Schemas Used:</span>
-                        <span className="text-foreground">{sessionLimits.schemasUsed}</span>
+                        <span className="text-foreground">{sessionLimits.schemasUsed}/5</span>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      No limits currently applied - unlimited generation enabled.
-                    </p>
                   </div>
                 )}
               </CardContent>
