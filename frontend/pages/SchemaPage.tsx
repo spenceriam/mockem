@@ -186,16 +186,23 @@ export function SchemaPage() {
       return value.toLocaleString();
     }
     if (value instanceof Date || (typeof value === "string" && value.includes("T"))) {
-      return new Date(value).toLocaleDateString();
+      try {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+          return value.toString();
+        }
+        return date.toLocaleDateString();
+      } catch {
+        return value.toString();
+      }
     }
     return value.toString();
   };
 
-  const remainingRows = sessionLimits ? 500 - sessionLimits.rowsGenerated : 0;
-  const remainingExports = sessionLimits ? 5 - sessionLimits.exportsUsed : 0;
+  // For unlimited mode, always allow generation and export
+  const canGenerate = true;
+  const canExport = hasGenerated;
   const totalRows = schemas.length * rowCount;
-  const canGenerate = sessionLimits ? remainingRows >= totalRows : false;
-  const canExport = sessionLimits ? remainingExports > 0 && hasGenerated : false;
   const isMultipleSchemas = schemas.length > 1;
 
   return (
@@ -238,13 +245,12 @@ export function SchemaPage() {
           </p>
         </div>
 
-        {!sessionLimits && (
-          <Alert className="mb-8 border-blue-600 bg-blue-950/20">
-            <AlertDescription className="text-blue-400">
-              Loading usage limits...
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* Unlimited Access Notice */}
+        <Alert className="mb-8 border-blue-600 bg-blue-950/20">
+          <AlertDescription className="text-blue-400">
+            🚀 Unlimited access enabled for testing! Generate as much data as you need.
+          </AlertDescription>
+        </Alert>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Generation Controls */}
@@ -272,7 +278,6 @@ export function SchemaPage() {
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
                     className="mt-2 bg-background border-border text-foreground"
-                    disabled={!sessionLimits}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isMultipleSchemas 
@@ -331,33 +336,28 @@ export function SchemaPage() {
                   </div>
                 )}
 
-                {/* Session Limits */}
+                {/* Session Stats (for tracking purposes) */}
                 {sessionLimits && (
                   <div className="pt-4 border-t border-border">
-                    <h4 className="text-foreground font-semibold mb-3">Daily Limits</h4>
+                    <h4 className="text-foreground font-semibold mb-3">Session Stats</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Rows Generated:</span>
-                        <span className="text-foreground">{sessionLimits.rowsGenerated}/500</span>
+                        <span className="text-foreground">{sessionLimits.rowsGenerated}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Exports Used:</span>
-                        <span className="text-foreground">{sessionLimits.exportsUsed}/5</span>
+                        <span className="text-foreground">{sessionLimits.exportsUsed}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Schemas Used:</span>
-                        <span className="text-foreground">{sessionLimits.schemasUsed}/5</span>
+                        <span className="text-foreground">{sessionLimits.schemasUsed}</span>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      No limits currently applied - unlimited generation enabled.
+                    </p>
                   </div>
-                )}
-
-                {sessionLimits && !canGenerate && totalRows > remainingRows && (
-                  <Alert className="border-amber-600 bg-amber-950/20">
-                    <AlertDescription className="text-amber-400">
-                      Daily row limit exceeded. You need {totalRows} rows but only have {remainingRows} remaining.
-                    </AlertDescription>
-                  </Alert>
                 )}
               </CardContent>
             </Card>

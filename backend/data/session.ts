@@ -110,6 +110,11 @@ export async function validateSessionLimits(
     return { valid: false, error: "Invalid or expired session" };
   }
 
+  // For now, return unlimited access
+  return { valid: true };
+
+  // Original limit checking code (commented out for unlimited access)
+  /*
   const currentRows = session.rows_generated;
   const currentExports = session.exports_used;
   const currentSchemas = session.schemas_used;
@@ -136,4 +141,5 @@ export async function validateSessionLimits(
   }
 
   return { valid: true };
+  */
 }

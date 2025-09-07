@@ -38,12 +38,11 @@ export const generateData = api<GenerateDataRequestWithSession, GenerateDataResp
       }
     }
 
-    // Check session limits
-    const totalRows = schemas.length * rowCount;
-    const validation = await validateSessionLimits(sessionId, totalRows, false, true);
-    if (!validation.valid) {
-      throw APIError.resourceExhausted(validation.error!);
-    }
+    // No session limits - unlimited for now
+    // const validation = await validateSessionLimits(sessionId, totalRows, false, true);
+    // if (!validation.valid) {
+    //   throw APIError.resourceExhausted(validation.error!);
+    // }
 
     // Generate data with relationships
     const data = await generateRelatedSchemaData(category, schemas, rowCount);
@@ -55,6 +54,7 @@ export const generateData = api<GenerateDataRequestWithSession, GenerateDataResp
     }
 
     // Update session limits
+    const totalRows = schemas.length * rowCount;
     const sessionLimits = await updateSessionLimits(sessionId, totalRows, 0, 1);
 
     return {
@@ -162,12 +162,14 @@ const LAST_NAMES = [
 ];
 
 const COMPANY_NAMES = [
-  'Acme Corp', 'Global Dynamics', 'Pinnacle Systems', 'Venture Solutions', 'Innovative Technologies',
+  'Acme Corporation', 'Global Dynamics', 'Pinnacle Systems', 'Venture Solutions', 'Innovative Technologies',
   'Strategic Partners', 'NextGen Industries', 'Quantum Enterprises', 'Precision Manufacturing', 'Elite Services',
   'Advanced Solutions', 'Dynamic Systems', 'Premier Technologies', 'Excellence Group', 'Unity Corporation',
   'Apex Industries', 'Meridian Solutions', 'Catalyst Corporation', 'Synergy Partners', 'Vertex Systems',
   'Horizon Technologies', 'Vanguard Solutions', 'Paramount Industries', 'Summit Corporation', 'Nexus Group',
-  'Titan Enterprises', 'Phoenix Solutions', 'Atlas Corporation', 'Sterling Industries', 'Beacon Technologies'
+  'Titan Enterprises', 'Phoenix Solutions', 'Atlas Corporation', 'Sterling Industries', 'Beacon Technologies',
+  'Oracle Enterprises', 'DataTech Solutions', 'CloudForce Systems', 'TechnoVision Inc', 'Digital Frontier',
+  'InnovatePro Ltd', 'MetaTech Corporation', 'FutureTech Industries', 'ProActive Solutions', 'SmartSys Corp'
 ];
 
 const COMPANY_SUFFIXES = ['Inc', 'Corp', 'LLC', 'Ltd', 'Co', 'Group', 'Systems', 'Solutions', 'Technologies', 'Industries'];
@@ -203,16 +205,20 @@ function randomChoice<T>(array: T[]): T {
 }
 
 function randomDate(daysBack: number = 365): Date {
-  return new Date(Date.now() - Math.random() * daysBack * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const randomTime = Math.random() * daysBack * 24 * 60 * 60 * 1000;
+  return new Date(now.getTime() - randomTime);
 }
 
 function randomFutureDate(daysForward: number = 365): Date {
-  return new Date(Date.now() + Math.random() * daysForward * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const randomTime = Math.random() * daysForward * 24 * 60 * 60 * 1000;
+  return new Date(now.getTime() + randomTime);
 }
 
 function generateEmail(firstName: string, lastName: string, company?: string): string {
   const domain = company ? 
-    `${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com` : 
+    `${company.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 15)}.com` : 
     randomChoice(DOMAINS);
   return `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
 }
@@ -225,7 +231,7 @@ async function generateCompanies(count: number): Promise<any[]> {
     let companyName;
     do {
       const baseName = randomChoice(COMPANY_NAMES);
-      const suffix = Math.random() > 0.5 ? ` ${randomChoice(COMPANY_SUFFIXES)}` : '';
+      const suffix = Math.random() > 0.7 ? ` ${randomChoice(COMPANY_SUFFIXES)}` : '';
       companyName = baseName + suffix;
     } while (usedNames.has(companyName));
     
@@ -280,7 +286,9 @@ async function generateOpportunities(count: number, companies?: any[], contacts?
   const opportunityNames = [
     'Q1 Software Implementation', 'Enterprise Platform Upgrade', 'Digital Transformation Initiative',
     'Cloud Migration Project', 'System Integration', 'Custom Development Project', 'Consulting Engagement',
-    'Annual License Renewal', 'Professional Services Contract', 'Training and Support Package'
+    'Annual License Renewal', 'Professional Services Contract', 'Training and Support Package',
+    'Software License Deal', 'Hardware Procurement', 'IT Infrastructure Upgrade', 'Security Assessment',
+    'Data Analytics Platform', 'Mobile App Development', 'Website Redesign Project', 'ERP Implementation'
   ];
   
   const stages = ['Discovery', 'Qualification', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost'];

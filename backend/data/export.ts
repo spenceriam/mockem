@@ -31,11 +31,11 @@ export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
       throw APIError.invalidArgument("Row count must be between 1 and 100");
     }
 
-    // Check session limits
-    const validation = await validateSessionLimits(sessionId, 0, true, false);
-    if (!validation.valid) {
-      throw APIError.resourceExhausted(validation.error!);
-    }
+    // No session limits for now - unlimited generation
+    // const validation = await validateSessionLimits(sessionId, 0, true, false);
+    // if (!validation.valid) {
+    //   throw APIError.resourceExhausted(validation.error!);
+    // }
 
     // Generate data with relationships
     const data = await generateRelatedSchemaData(category, schemas, rowCount);
