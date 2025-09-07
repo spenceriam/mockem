@@ -1,19 +1,21 @@
 import { api, APIError, Cookie } from "encore.dev/api";
 import { ExportDataRequest, SessionLimits } from "./types";
 import { validateSessionLimits, updateSessionLimits } from "./session";
-import { generateSchemaData } from "./generator";
+import { generateRelatedSchemaData } from "./generator";
 
 interface ExportDataRequestWithSession extends ExportDataRequest {
   session?: Cookie<"session">;
 }
 
 interface ExportDataResponse {
-  csvData: string;
+  csvData?: string;
+  zipData?: string;
   filename: string;
+  isZip: boolean;
   sessionLimits: SessionLimits;
 }
 
-// Export data as CSV
+// Export data as CSV or ZIP
 export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
   { expose: true, method: "POST", path: "/export" },
   async (req) => {
@@ -21,7 +23,7 @@ export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
       throw APIError.unauthenticated("Session required");
     }
 
-    const { category, platform, schema, rowCount } = req;
+    const { category, platform, schemas, rowCount } = req;
     const sessionId = req.session.value;
 
     // Validate request
@@ -35,21 +37,37 @@ export const exportData = api<ExportDataRequestWithSession, ExportDataResponse>(
       throw APIError.resourceExhausted(validation.error!);
     }
 
-    // Generate data
-    const data = await generateSchemaData(schema, rowCount);
-
-    // Convert to CSV
-    const csvData = convertToCSV(data, schema);
-    const filename = `mockem_${category}_${platform}_${schema}_${new Date().toISOString().split('T')[0]}.csv`;
+    // Generate data with relationships
+    const data = await generateRelatedSchemaData(category, schemas, rowCount);
 
     // Update session limits
     const newLimits = await updateSessionLimits(sessionId, 0, 1, 0);
 
-    return {
-      csvData,
-      filename,
-      sessionLimits: newLimits,
-    };
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    if (schemas.length === 1) {
+      // Single schema - return CSV
+      const csvData = convertToCSV(data[schemas[0]], schemas[0]);
+      const filename = `mockem_${category}_${platform}_${schemas[0]}_${timestamp}.csv`;
+
+      return {
+        csvData,
+        filename,
+        isZip: false,
+        sessionLimits: newLimits,
+      };
+    } else {
+      // Multiple schemas - return ZIP
+      const zipData = await createZipFile(data, category, platform, timestamp);
+      const filename = `mockem_${category}_${platform}_${timestamp}.zip`;
+
+      return {
+        zipData,
+        filename,
+        isZip: true,
+        sessionLimits: newLimits,
+      };
+    }
   }
 );
 
@@ -57,7 +75,7 @@ function convertToCSV(data: any[], schema: string): string {
   if (data.length === 0) return '';
 
   // Add MockEm header
-  const header = `# Powered by MockEm - Enterprise Mock Data Generator\n# All data is purely fictional and generated for testing purposes\n# Generated on: ${new Date().toISOString()}\n\n`;
+  const header = `# Powered by MockEm - Enterprise Mock Data Generator\n# All data is purely fictional and generated for testing purposes\n# Schema: ${schema}\n# Generated on: ${new Date().toISOString()}\n\n`;
 
   // Get column names from first row
   const columns = Object.keys(data[0]);
@@ -90,4 +108,35 @@ function convertToCSV(data: any[], schema: string): string {
   });
   
   return header + [csvHeader, ...csvRows].join('\n');
+}
+
+async function createZipFile(data: Record<string, any[]>, category: string, platform: string, timestamp: string): Promise<string> {
+  // Create a simple ZIP-like structure (base64 encoded)
+  // In a real implementation, you'd use a proper ZIP library
+  const files: Record<string, string> = {};
+  
+  for (const [schema, schemaData] of Object.entries(data)) {
+    const csvContent = convertToCSV(schemaData, schema);
+    files[`${schema}.csv`] = csvContent;
+  }
+
+  // Create a manifest file
+  const manifest = {
+    category,
+    platform,
+    generated_on: new Date().toISOString(),
+    schemas: Object.keys(data),
+    total_files: Object.keys(files).length,
+    note: "All data is purely fictional and generated for testing purposes"
+  };
+  
+  files['manifest.json'] = JSON.stringify(manifest, null, 2);
+
+  // Simple concatenation for demo purposes
+  // In production, use a proper ZIP library like JSZip
+  const zipContent = Object.entries(files)
+    .map(([filename, content]) => `--- FILE: ${filename} ---\n${content}\n--- END FILE ---\n`)
+    .join('\n');
+
+  return Buffer.from(zipContent).toString('base64');
 }

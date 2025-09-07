@@ -101,7 +101,7 @@ export namespace data {
         }
 
         /**
-         * Export data as CSV
+         * Export data as CSV or ZIP
          */
         public async exportData(params: RequestType<typeof api_data_export_exportData>): Promise<ResponseType<typeof api_data_export_exportData>> {
             // Now make the actual call to the API
@@ -110,7 +110,7 @@ export namespace data {
         }
 
         /**
-         * Generate mock data for a specific schema
+         * Generate mock data for multiple schemas with relationships
          */
         public async generateData(params: RequestType<typeof api_data_generator_generateData>): Promise<ResponseType<typeof api_data_generator_generateData>> {
             // Now make the actual call to the API

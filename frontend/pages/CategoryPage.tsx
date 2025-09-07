@@ -1,4 +1,5 @@
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Database,
   Building2,
@@ -7,10 +8,12 @@ import {
   ShoppingCart,
   Settings,
   ArrowRight,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AhoyHeader } from "@/components/AhoyHeader";
 import { AhoyFooter } from "@/components/AhoyFooter";
 
@@ -18,27 +21,45 @@ const categoryInfo = {
   "sales-crm": {
     title: "Sales & CRM",
     description: "Customer relationship management, sales opportunities, and pipeline data",
-    schemas: ["companies", "contacts", "opportunities"],
+    schemas: [
+      { id: "companies", name: "Companies", description: "Company profiles and business information" },
+      { id: "contacts", name: "Contacts", description: "Individual contacts within companies" },
+      { id: "opportunities", name: "Opportunities", description: "Sales opportunities and pipeline data" }
+    ],
   },
   "finance-erp": {
     title: "Finance & ERP",
     description: "Financial records, accounting transactions, and vendor management",
-    schemas: ["accounts", "transactions", "vendors"],
+    schemas: [
+      { id: "accounts", name: "Accounts", description: "Chart of accounts and financial structures" },
+      { id: "transactions", name: "Transactions", description: "Financial transactions and journal entries" },
+      { id: "vendors", name: "Vendors", description: "Vendor and supplier information" }
+    ],
   },
   "human-resources": {
     title: "Human Resources",
     description: "Employee data, organizational structures, and department management",
-    schemas: ["employees", "departments"],
+    schemas: [
+      { id: "departments", name: "Departments", description: "Organizational departments and structures" },
+      { id: "employees", name: "Employees", description: "Employee records and information" }
+    ],
   },
   "marketing-campaigns": {
     title: "Marketing & Campaigns",
     description: "Campaign management, lead tracking, and marketing analytics",
-    schemas: ["campaigns", "leads"],
+    schemas: [
+      { id: "campaigns", name: "Campaigns", description: "Marketing campaigns and initiatives" },
+      { id: "leads", name: "Leads", description: "Lead tracking and qualification data" }
+    ],
   },
   "supply-chain": {
     title: "Supply Chain & Inventory",
     description: "Product catalogs, order management, and supplier relationships",
-    schemas: ["products", "orders", "suppliers"],
+    schemas: [
+      { id: "products", name: "Products", description: "Product catalog and inventory data" },
+      { id: "suppliers", name: "Suppliers", description: "Supplier and vendor information" },
+      { id: "orders", name: "Orders", description: "Order management and fulfillment data" }
+    ],
   },
 };
 
@@ -89,12 +110,38 @@ const platforms = [
 
 export function CategoryPage() {
   const { category } = useParams<{ category: string }>();
+  const navigate = useNavigate();
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [selectedSchemas, setSelectedSchemas] = useState<string[]>([]);
 
   if (!category || !(category in categoryInfo)) {
     return <div>Category not found</div>;
   }
 
   const info = categoryInfo[category as keyof typeof categoryInfo];
+
+  const handleSchemaToggle = (schemaId: string) => {
+    setSelectedSchemas(prev => 
+      prev.includes(schemaId) 
+        ? prev.filter(id => id !== schemaId)
+        : [...prev, schemaId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSchemas.length === info.schemas.length) {
+      setSelectedSchemas([]);
+    } else {
+      setSelectedSchemas(info.schemas.map(s => s.id));
+    }
+  };
+
+  const handleContinue = () => {
+    if (selectedPlatform && selectedSchemas.length > 0) {
+      const schemasParam = selectedSchemas.join(',');
+      navigate(`/category/${category}/${selectedPlatform}/${schemasParam}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,65 +152,159 @@ export function CategoryPage() {
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">{info.title}</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">{info.description}</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {info.schemas.map((schema) => (
-                <Badge
-                  key={schema}
-                  variant="secondary"
-                  className="bg-slate-700 text-slate-300 border-slate-600"
-                >
-                  {schema}
-                </Badge>
-              ))}
-            </div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">{info.description}</p>
+            <p className="text-sm text-muted-foreground">
+              Select your platform and the data schemas you need. Related data will maintain referential integrity.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Platforms Grid */}
-      <section className="py-12">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-foreground">Choose Your Platform</h2>
-            <p className="mt-2 text-muted-foreground">
-              Select the platform variant that matches your target system for optimized data structures.
-            </p>
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Platform Selection */}
+          <div className="lg:col-span-2">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-4">1. Choose Your Platform</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {platforms.map((platform) => (
+                  <Card 
+                    key={platform.id} 
+                    className={`cursor-pointer transition-all ${
+                      selectedPlatform === platform.id
+                        ? 'ring-2 ring-slate-400 bg-slate-800/50'
+                        : 'bg-card border-border hover:bg-slate-800/30'
+                    }`}
+                    onClick={() => setSelectedPlatform(platform.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <platform.icon className={`h-6 w-6 ${platform.color}`} />
+                          <CardTitle className="text-lg text-foreground">{platform.name}</CardTitle>
+                        </div>
+                        {selectedPlatform === platform.id && (
+                          <Check className="h-5 w-5 text-green-400" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="text-muted-foreground text-sm">
+                        {platform.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Schema Selection */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-foreground">2. Select Data Schemas</h2>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  {selectedSchemas.length === info.schemas.length ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {info.schemas.map((schema) => (
+                  <Card 
+                    key={schema.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedSchemas.includes(schema.id)
+                        ? 'ring-2 ring-slate-400 bg-slate-800/50'
+                        : 'bg-card border-border hover:bg-slate-800/30'
+                    }`}
+                    onClick={() => handleSchemaToggle(schema.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <Checkbox 
+                          checked={selectedSchemas.includes(schema.id)}
+                          onChange={() => handleSchemaToggle(schema.id)}
+                          className="border-slate-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-foreground">{schema.name}</h3>
+                            <Badge variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
+                              {schema.id}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{schema.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {platforms.map((platform) => (
-              <div key={platform.id} className="space-y-4">
-                <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <platform.icon className={`h-8 w-8 ${platform.color}`} />
-                      <CardTitle className="text-foreground">{platform.name}</CardTitle>
-                    </div>
-                    <CardDescription className="text-muted-foreground">{platform.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {info.schemas.map((schema) => (
-                        <Button
-                          key={schema}
-                          variant="outline"
-                          className="w-full justify-between border-slate-600 text-slate-300 hover:bg-slate-700"
-                          asChild
-                        >
-                          <Link to={`/category/${category}/${platform.id}/${schema}`}>
-                            {schema}
-                            <ArrowRight className="h-4 w-4" />
-                          </Link>
-                        </Button>
+
+          {/* Action Panel */}
+          <div className="lg:col-span-1">
+            <Card className="bg-card border-border shadow-sm sticky top-8">
+              <CardHeader>
+                <CardTitle className="text-foreground">Selection Summary</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Review your choices before proceeding
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-2">Platform</h4>
+                  {selectedPlatform ? (
+                    <Badge variant="secondary" className="bg-slate-700 text-slate-300 border-slate-600">
+                      {platforms.find(p => p.id === selectedPlatform)?.name}
+                    </Badge>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No platform selected</p>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-2">
+                    Schemas ({selectedSchemas.length})
+                  </h4>
+                  {selectedSchemas.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSchemas.map(schemaId => (
+                        <Badge key={schemaId} variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
+                          {schemaId}
+                        </Badge>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No schemas selected</p>
+                  )}
+                </div>
+
+                {selectedSchemas.length > 1 && (
+                  <div className="p-3 bg-slate-800/30 rounded-lg">
+                    <p className="text-xs text-slate-400">
+                      💡 Multiple schemas will be generated with proper relationships and exported as a ZIP file.
+                    </p>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={handleContinue}
+                  disabled={!selectedPlatform || selectedSchemas.length === 0}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-slate-100"
+                >
+                  Continue to Data Generation
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </section>
+      </div>
 
       <AhoyFooter />
     </div>

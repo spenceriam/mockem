@@ -7,21 +7,21 @@ export interface SessionLimits {
 export interface GenerateDataRequest {
   category: string;
   platform: string;
-  schema: string;
+  schemas: string[];
   rowCount: number;
 }
 
 export interface GenerateDataResponse {
-  data: any[];
+  data: Record<string, any[]>;
   totalRows: number;
-  preview: any[];
+  preview: Record<string, any[]>;
   sessionLimits: SessionLimits;
 }
 
 export interface ExportDataRequest {
   category: string;
   platform: string;
-  schema: string;
+  schemas: string[];
   rowCount: number;
 }
 
@@ -59,4 +59,30 @@ export const SCHEMAS = {
   'human-resources': ['employees', 'departments'],
   'marketing-campaigns': ['campaigns', 'leads'],
   'supply-chain': ['products', 'orders', 'suppliers']
+} as const;
+
+export const SCHEMA_RELATIONSHIPS = {
+  'sales-crm': {
+    companies: { primary: 'id', related: [] },
+    contacts: { primary: 'id', related: [{ schema: 'companies', key: 'company_id' }] },
+    opportunities: { primary: 'id', related: [{ schema: 'companies', key: 'company_id' }, { schema: 'contacts', key: 'contact_id' }] }
+  },
+  'finance-erp': {
+    accounts: { primary: 'id', related: [] },
+    transactions: { primary: 'id', related: [{ schema: 'accounts', key: 'account_id' }] },
+    vendors: { primary: 'id', related: [] }
+  },
+  'human-resources': {
+    departments: { primary: 'id', related: [] },
+    employees: { primary: 'id', related: [{ schema: 'departments', key: 'department_id' }] }
+  },
+  'marketing-campaigns': {
+    campaigns: { primary: 'id', related: [] },
+    leads: { primary: 'id', related: [{ schema: 'campaigns', key: 'campaign_id' }] }
+  },
+  'supply-chain': {
+    products: { primary: 'id', related: [] },
+    suppliers: { primary: 'id', related: [] },
+    orders: { primary: 'id', related: [{ schema: 'companies', key: 'customer_id' }] }
+  }
 } as const;
