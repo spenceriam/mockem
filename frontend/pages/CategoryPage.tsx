@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Database,
@@ -113,7 +113,11 @@ export function CategoryPage() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedSchemas, setSelectedSchemas] = useState<string[]>([]);
-  const platformSelectionRef = useRef<HTMLDivElement>(null);
+  const schemaSelectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (!category || !(category in categoryInfo)) {
     return <div>Category not found</div>;
@@ -125,6 +129,10 @@ export function CategoryPage() {
     if (selectedPlatform !== platformId) {
       setSelectedPlatform(platformId);
       setSelectedSchemas([]); // Clear schemas on new platform selection
+      // Scroll to schema selection
+      setTimeout(() => {
+        schemaSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
@@ -153,10 +161,6 @@ export function CategoryPage() {
     }
   };
 
-  const scrollToPlatforms = () => {
-    platformSelectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <AhoyHeader backTo="/" backLabel="Back to Home" />
@@ -178,7 +182,7 @@ export function CategoryPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Platform & Schema Selection */}
           <div className="lg:col-span-2">
-            <div ref={platformSelectionRef} className="mb-8 scroll-mt-24">
+            <div className="mb-8 scroll-mt-24">
               <h2 className="text-2xl font-bold text-foreground mb-4">1. Choose Your Platform</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 {platforms.map((platform) => (
@@ -213,11 +217,10 @@ export function CategoryPage() {
             </div>
 
             {/* Schema Selection */}
-            <div className="relative">
+            <div ref={schemaSelectionRef} className="relative scroll-mt-24">
               {!selectedPlatform && (
                 <div 
-                  className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg -m-4 p-4 cursor-pointer"
-                  onClick={scrollToPlatforms}
+                  className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg -m-4 p-4"
                 >
                   <p className="text-lg font-semibold text-foreground text-center p-4 bg-card/80 rounded-md border border-border">
                     Please select a platform first
