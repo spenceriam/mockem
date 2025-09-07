@@ -75,26 +75,38 @@ export function SchemaPage() {
     }
   };
 
+  async function callBackend<T>(apiCall: () => Promise<T>, isRetry = false): Promise<T> {
+    try {
+      if (!sessionInitialized) {
+        await initializeSession();
+      }
+      return await apiCall();
+    } catch (error: any) {
+      if ((error.message?.includes("Session required") || error.message?.includes("session")) && !isRetry) {
+        console.log("Session error detected, reinitializing and retrying...");
+        toast({
+          title: "Session Expired",
+          description: "Refreshing session and retrying...",
+        });
+        await initializeSession();
+        return callBackend(apiCall, true); // Retry the original call
+      }
+      // Re-throw other errors
+      throw error;
+    }
+  }
+
   const handleGenerate = async () => {
     if (!category || !platform || schemas.length === 0) return;
-    
-    if (!sessionInitialized) {
-      toast({
-        title: "Session Not Ready",
-        description: "Please wait for the session to initialize.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setIsGenerating(true);
     try {
-      const response = await backend.data.generateData({
+      const response = await callBackend(() => backend.data.generateData({
         category,
         platform,
         schemas,
         rowCount,
-      });
+      }));
 
       setData(response.preview);
       setHasGenerated(true);
@@ -106,22 +118,11 @@ export function SchemaPage() {
       });
     } catch (error: any) {
       console.error("Generation error:", error);
-      
-      // If it's a session error, try to reinitialize
-      if (error.message?.includes("Session required") || error.message?.includes("session")) {
-        console.log("Session error detected, reinitializing...");
-        await initializeSession();
-        toast({
-          title: "Session Refreshed",
-          description: "Please try generating data again.",
-        });
-      } else {
-        toast({
-          title: "Generation Failed",
-          description: error.message || "Failed to generate data. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate data. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -129,24 +130,15 @@ export function SchemaPage() {
 
   const handleExport = async () => {
     if (!category || !platform || schemas.length === 0) return;
-    
-    if (!sessionInitialized) {
-      toast({
-        title: "Session Not Ready",
-        description: "Please wait for the session to initialize.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setIsExporting(true);
     try {
-      const response = await backend.data.exportData({
+      const response = await callBackend(() => backend.data.exportData({
         category,
         platform,
         schemas,
         rowCount,
-      });
+      }));
 
       if (response.isZip && response.zipData) {
         // Handle ZIP download
@@ -181,22 +173,11 @@ export function SchemaPage() {
       });
     } catch (error: any) {
       console.error("Export error:", error);
-      
-      // If it's a session error, try to reinitialize
-      if (error.message?.includes("Session required") || error.message?.includes("session")) {
-        console.log("Session error detected, reinitializing...");
-        await initializeSession();
-        toast({
-          title: "Session Refreshed",
-          description: "Please try exporting again.",
-        });
-      } else {
-        toast({
-          title: "Export Failed",
-          description: error.message || "Failed to export data. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export data. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsExporting(false);
     }
