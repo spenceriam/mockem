@@ -23,6 +23,10 @@ export const generateData = api<GenerateDataRequestWithSession, GenerateDataResp
       throw APIError.invalidArgument("Row count must be between 1 and 100");
     }
 
+    if (!schemas || schemas.length === 0) {
+      throw APIError.invalidArgument("At least one schema must be specified");
+    }
+
     const categorySchemas = SCHEMAS[category as keyof typeof SCHEMAS];
     if (!categorySchemas) {
       throw APIError.invalidArgument("Invalid category");
