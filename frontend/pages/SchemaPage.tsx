@@ -42,71 +42,46 @@ export function SchemaPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
-  const [sessionLimits, setSessionLimits] = useState<SessionLimits>({
-    rowsGenerated: 0,
-    exportsUsed: 0,
-    schemasUsed: 0,
-  });
+  const [sessionLimits, setSessionLimits] = useState<SessionLimits | null>(null);
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(schemas[0] || '');
-  const [sessionInitialized, setSessionInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    initializeSession();
+    // Fetch the current limits when the page loads.
+    // The session cookie is already guaranteed to be set by App.tsx.
+    const fetchCurrentLimits = async () => {
+      try {
+        const response = await backend.data.getSession({});
+        setSessionLimits(response.sessionInfo.limits);
+      } catch (error) {
+        console.error("Failed to fetch session limits:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch your current usage limits.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCurrentLimits();
     if (schemas.length > 0) {
       setActiveTab(schemas[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const initializeSession = async () => {
-    try {
-      const response = await backend.data.getSession({});
-      setSessionLimits(response.sessionInfo.limits);
-      setSessionInitialized(true);
-    } catch (error) {
-      console.error("Session initialization error:", error);
-      toast({
-        title: "Session Error",
-        description: "Failed to initialize session. Please refresh the page.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  async function callBackend<T>(apiCall: () => Promise<T>, isRetry = false): Promise<T> {
-    try {
-      if (!sessionInitialized) {
-        await initializeSession();
-      }
-      return await apiCall();
-    } catch (error: any) {
-      if ((error.message?.includes("Session required") || error.message?.includes("session")) && !isRetry) {
-        console.log("Session error detected, reinitializing and retrying...");
-        toast({
-          title: "Session Expired",
-          description: "Refreshing session and retrying...",
-        });
-        await initializeSession();
-        return callBackend(apiCall, true); // Retry the original call
-      }
-      // Re-throw other errors
-      throw error;
-    }
-  }
-
   const handleGenerate = async () => {
     if (!category || !platform || schemas.length === 0) return;
 
     setIsGenerating(true);
     try {
-      const response = await callBackend(() => backend.data.generateData({
+      const response = await backend.data.generateData({
         category,
         platform,
         schemas,
         rowCount,
-      }));
+      });
 
       setData(response.preview);
       setHasGenerated(true);
@@ -133,12 +108,12 @@ export function SchemaPage() {
 
     setIsExporting(true);
     try {
-      const response = await callBackend(() => backend.data.exportData({
+      const response = await backend.data.exportData({
         category,
         platform,
         schemas,
         rowCount,
-      }));
+      });
 
       if (response.isZip && response.zipData) {
         // Handle ZIP download
@@ -216,11 +191,11 @@ export function SchemaPage() {
     return value.toString();
   };
 
-  const remainingRows = 500 - sessionLimits.rowsGenerated;
-  const remainingExports = 1 - sessionLimits.exportsUsed;
+  const remainingRows = sessionLimits ? 500 - sessionLimits.rowsGenerated : 0;
+  const remainingExports = sessionLimits ? 1 - sessionLimits.exportsUsed : 0;
   const totalRows = schemas.length * rowCount;
-  const canGenerate = remainingRows >= totalRows && sessionInitialized;
-  const canExport = remainingExports > 0 && hasGenerated && sessionInitialized;
+  const canGenerate = sessionLimits ? remainingRows >= totalRows : false;
+  const canExport = sessionLimits ? remainingExports > 0 && hasGenerated : false;
   const isMultipleSchemas = schemas.length > 1;
 
   return (
@@ -263,10 +238,10 @@ export function SchemaPage() {
           </p>
         </div>
 
-        {!sessionInitialized && (
+        {!sessionLimits && (
           <Alert className="mb-8 border-blue-600 bg-blue-950/20">
             <AlertDescription className="text-blue-400">
-              Initializing session... Please wait.
+              Loading usage limits...
             </AlertDescription>
           </Alert>
         )}
@@ -297,7 +272,7 @@ export function SchemaPage() {
                     value={rowCount}
                     onChange={(e) => setRowCount(parseInt(e.target.value) || 10)}
                     className="mt-2 bg-background border-border text-foreground"
-                    disabled={!sessionInitialized}
+                    disabled={!sessionLimits}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isMultipleSchemas 
@@ -357,25 +332,27 @@ export function SchemaPage() {
                 )}
 
                 {/* Session Limits */}
-                <div className="pt-4 border-t border-border">
-                  <h4 className="text-foreground font-semibold mb-3">Daily Limits</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Rows Generated:</span>
-                      <span className="text-foreground">{sessionLimits.rowsGenerated}/500</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Exports Used:</span>
-                      <span className="text-foreground">{sessionLimits.exportsUsed}/1</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Schemas Used:</span>
-                      <span className="text-foreground">{sessionLimits.schemasUsed}/1</span>
+                {sessionLimits && (
+                  <div className="pt-4 border-t border-border">
+                    <h4 className="text-foreground font-semibold mb-3">Daily Limits</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Rows Generated:</span>
+                        <span className="text-foreground">{sessionLimits.rowsGenerated}/500</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Exports Used:</span>
+                        <span className="text-foreground">{sessionLimits.exportsUsed}/1</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Schemas Used:</span>
+                        <span className="text-foreground">{sessionLimits.schemasUsed}/1</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {sessionInitialized && !canGenerate && totalRows > remainingRows && (
+                {sessionLimits && !canGenerate && totalRows > remainingRows && (
                   <Alert className="border-amber-600 bg-amber-950/20">
                     <AlertDescription className="text-amber-400">
                       Daily row limit exceeded. You need {totalRows} rows but only have {remainingRows} remaining.

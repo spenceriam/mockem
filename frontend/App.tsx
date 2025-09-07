@@ -1,45 +1,42 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
-import { LandingPage } from "./pages/LandingPage";
-import { CategoryPage } from "./pages/CategoryPage";
-import { SchemaPage } from "./pages/SchemaPage";
+import { useState, useEffect } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { useEffect } from "react";
 import backend from "~backend/client";
+import { AppInner } from "./AppInner";
+import { Loader2 } from "lucide-react";
 
-function AppInner() {
+export default function App() {
+  const [sessionReady, setSessionReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Initialize session on app start to ensure cookies are set
-    const initializeGlobalSession = async () => {
+    const initializeSession = async () => {
       try {
+        // This call is critical. It establishes the session and sets the
+        // session cookie that subsequent backend calls will need.
         await backend.data.getSession({});
-        console.log("Global session initialized");
-      } catch (error) {
-        console.error("Failed to initialize global session:", error);
+        setSessionReady(true);
+      } catch (err: any) {
+        console.error("Failed to initialize session:", err);
+        setError("Could not connect to the server. Please refresh the page.");
       }
     };
-
-    initializeGlobalSession();
+    initializeSession();
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/category/:category" element={<CategoryPage />} />
-          <Route path="/category/:category/:platform/:schema" element={<SchemaPage />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </div>
-  );
-}
-
-export default function App() {
-  return (
     <ThemeProvider defaultTheme="dark" storageKey="mockem-theme">
-      <AppInner />
+      {error ? (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center flex-col gap-4">
+          <h1 className="text-2xl font-bold text-destructive">Connection Error</h1>
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      ) : sessionReady ? (
+        <AppInner />
+      ) : (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-slate-400" />
+        </div>
+      )}
     </ThemeProvider>
   );
 }
